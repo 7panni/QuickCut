@@ -452,7 +452,7 @@ pyinstaller -wy -i icon.icns QuickCut.py # 为了图标格式兼容，Mac 用户
 
 This is a modern macOS source fork of [Haujet Zhao's QuickCut](https://github.com/HaujetZhao/QuickCut). The original author and [MPL-2.0 license](LICENSE) are retained. The historical upstream documentation follows this section; its PyPI package, Windows binaries, and release links are not this fork's installation route.
 
-**Supported target:** Apple Silicon (M1–M4), macOS 15 or newer, native arm64 Python 3.11. The core source installation and cut/export workflow were checked on an Apple Silicon Mac; macOS 15 is checked by arm64 GitHub Actions. Individual M1–M4 models have not each been tested. Intel Macs, Rosetta, `.app`/DMG builds, signing, and notarization are outside this fork's scope.
+**Supported target:** Apple Silicon (M1–M4), macOS 15 or newer, native arm64 Python 3.11. The core source installation, offscreen startup, and the FFmpeg/ffprobe cut tooling (duration probe and a `-c copy` segment cut on a synthetic clip) were checked on an Apple Silicon Mac; macOS 15 is checked by arm64 GitHub Actions. The GUI cut/export flow on your own media is left for you to verify. Individual M1–M4 models have not each been tested. Intel Macs, Rosetta, `.app`/DMG builds, signing, and notarization are outside this fork's scope.
 
 ### Install and run
 
