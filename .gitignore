@@ -1,4 +1,6 @@
 *.db
+.venv/
+*.egg-info/
 *.spec
 *.exe
 __pycache__

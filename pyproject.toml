@@ -1,0 +1,32 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "quickcut-macos"
+version = "1.6.10.post1"
+description = "Modern macOS and Apple Silicon source fork of Quick Cut"
+readme = "README.md"
+requires-python = ">=3.11,<3.12"
+license = {file = "LICENSE"}
+authors = [{name = "Haujet Zhao"}]
+dependencies = [
+  "PyQt5>=5.15.9,<5.16",
+  "numpy>=1.26,<2",
+  "srt>=3.5,<4",
+  "requests>=2.31,<3",
+]
+
+[project.scripts]
+quickcut = "QuickCut.QuickCut:main"
+
+[project.optional-dependencies]
+autoedit = ["scipy>=1.11,<2", "audiotsm>=0.1.2,<0.2", "auditok>=0.2,<1"]
+cloud = ["aliyun-python-sdk-core>=2.13,<3", "cos-python-sdk-v5>=1.9,<2", "tencentcloud-sdk-python>=3.0,<4", "oss2>=2.18,<3"]
+voice = ["pyaudio>=0.2.14,<1", "keyboard>=0.13.5,<1"]
+
+[tool.setuptools]
+packages = ["QuickCut"]
+
+[tool.setuptools.package-data]
+QuickCut = ["style.css", "sponsor.jpg", "languages/*", "misc/*.html", "misc/*.icns", "misc/*.ico", "misc/assets/*"]

@@ -14,54 +14,77 @@ import time
 from traceback import format_exception
 import urllib.parse
 import webbrowser
-import pyaudio
-import keyboard
+try:
+    import pyaudio
+except ImportError:
+    pyaudio = None
+try:
+    import keyboard
+except ImportError:
+    keyboard = None
 import threading
 import platform
 import signal
-import auditok
-import pymediainfo
+try:
+    import auditok
+except ImportError:
+    auditok = None
 import io
 from shutil import rmtree, move
-try:
-    os.chdir(os.path.dirname(__file__))
-except:
-    print('更改工作目录失败，关系不大，不用管它')
 
 import numpy as np
-import oss2
+try:
+    import oss2
+except ImportError:
+    oss2 = None
 from PyQt5.QtCore import *
 from PyQt5.QtGui import *
 from PyQt5.QtSql import *
 from PyQt5.QtWidgets import *
 import requests
-from aliyunsdkcore.acs_exception.exceptions import ClientException
-from aliyunsdkcore.acs_exception.exceptions import ServerException
-from aliyunsdkcore.client import AcsClient
-from aliyunsdkcore.request import CommonRequest
+try:
+    from aliyunsdkcore.acs_exception.exceptions import ClientException, ServerException
+    from aliyunsdkcore.client import AcsClient
+    from aliyunsdkcore.request import CommonRequest
+except ImportError:
+    AcsClient = CommonRequest = None
 
-import ali_speech
-from ali_speech.callbacks import SpeechRecognizerCallback
-from ali_speech.constant import ASRFormat
-from ali_speech.constant import ASRSampleRate
+try:
+    import ali_speech
+    from ali_speech.callbacks import SpeechRecognizerCallback
+    from ali_speech.constant import ASRFormat, ASRSampleRate
+except ImportError:
+    ali_speech = None
+    SpeechRecognizerCallback = object
 
-from audiotsm import phasevocoder
-from audiotsm.io.wav import WavReader, WavWriter
-from qcloud_cos import CosConfig
-from qcloud_cos import CosS3Client
-from scipy.io import wavfile
-from tencentcloud.asr.v20190614 import asr_client, models
-from tencentcloud.common import credential
-from tencentcloud.common.exception.tencent_cloud_sdk_exception import TencentCloudSDKException
-from tencentcloud.common.profile.client_profile import ClientProfile
-from tencentcloud.common.profile.http_profile import HttpProfile
+try:
+    from audiotsm import phasevocoder
+    from audiotsm.io.wav import WavReader, WavWriter
+except ImportError:
+    phasevocoder = WavReader = WavWriter = None
+try:
+    from qcloud_cos import CosConfig, CosS3Client
+except ImportError:
+    CosConfig = CosS3Client = None
+try:
+    from scipy.io import wavfile
+except ImportError:
+    wavfile = None
+try:
+    from tencentcloud.asr.v20190614 import asr_client, models
+    from tencentcloud.common import credential
+    from tencentcloud.common.exception.tencent_cloud_sdk_exception import TencentCloudSDKException
+    from tencentcloud.common.profile.client_profile import ClientProfile
+    from tencentcloud.common.profile.http_profile import HttpProfile
+except ImportError:
+    asr_client = None
 
 # from PyQt5.QtWidgets import QListWidget, QWidget, QApplication, QFileDialog, QMainWindow, QDialog, QLabel, QLineEdit, QTextEdit, QPlainTextEdit, QTabWidget, QVBoxLayout, QHBoxLayout, QFormLayout, QGridLayout, QPushButton, QCheckBox, QSplitter
 # from PyQt5.QtGui import QCloseEvent
 # from PyQt5.QtCore import Qt
 
 # print('开始运行')
-dbname = './database.db'  # 存储预设的数据库名字
+dbname = None  # Initialized under the user's Application Support directory in main().
 presetTableName = 'commandPreset'  # 存储预设的表单名字
 ossTableName = 'oss'
 apiTableName = 'api'
@@ -81,7 +104,8 @@ class MainWindow(QMainWindow):
         self.initGui()
         self.loadStyleSheet()
         self.status = self.statusBar()
-        self._start_checker()
+        # Upstream release checks point at the original Windows-era releases.
+        # This source fork does not check them at startup.
 
 
         # self.setWindowState(Qt.WindowMaximized)
@@ -3704,6 +3728,10 @@ class CapsWriterTab(QWidget):
         self.disableButton.clicked.connect(self.capsWriterDisabled)
 
     def initCapsWriterStatus(self):
+        if ali_speech is None or pyaudio is None or keyboard is None:
+            self.enableButton.setEnabled(False)
+            self.disableButton.setEnabled(False)
+            return
         cursor = conn.cursor()
         result = cursor.execute('select value from %s where item = "%s";' % (preferenceTableName, 'CapsWriterEnabled'))
         if result.fetchone()[0] == 'False':
@@ -3712,6 +3740,9 @@ class CapsWriterTab(QWidget):
             self.enableButton.click()
 
     def switchEnableButtonStatus(self):
+        if ali_speech is None or pyaudio is None or keyboard is None:
+            self.enableButton.setEnabled(False)
+            return
         if self.subtitleEngineComboBox.currentText() == '':
             self.enableButton.setEnabled(False)
         else:
@@ -6030,7 +6061,7 @@ class CapsWriterThread(QThread):
     accessKeySecret = None
 
     CHUNK = 1024  # 数据包或者数据片段
-    FORMAT = pyaudio.paInt16  # pyaudio.paInt16表示我们使用量化位数 16位来进行录音
+    FORMAT = pyaudio.paInt16 if pyaudio is not None else None
     CHANNELS = 1  # 声道，1为单声道，2为双声道
     RATE = 16000  # 采样率，每秒钟16000次
 
@@ -7454,28 +7485,13 @@ def strTimeToSecondsTime(inputTime):
 
 # 得到视频长度
 def getMediaTimeLength(inputFile):
-    # 用于获取一个视频或者音频文件的长度
-    # try:
-    print('start getting info')
-    info = pymediainfo.MediaInfo.parse(inputFile)
-    print('info' + str(info))
-    duration = 0
-    print('info.tracks' + str(info.tracks))
-    for track in info.tracks:
-        print('track.duration' + str(track.duration))
-        if float(track.duration) > duration:
-            duration = track.duration
-    return float(duration / 1000)
-    # except:
-        # return float(0)
-
-    # 下面这是 ffprobe 的方法，暂时先不用了。
-    # result = subprocess.run(["ffprobe", "-v", "error", "-show_entries",
-    #                          "format=duration", "-of",
-    #                          "default=noprint_wrappers=1:nokey=1", inputFile], shell=True,
-    #                         stdout=subprocess.PIPE,
-    #                         stderr=subprocess.STDOUT)
-    # return float(result.stdout)
+    """Return media duration in seconds using the FFmpeg installation."""
+    result = subprocess.run(
+        ["ffprobe", "-v", "error", "-show_entries", "format=duration",
+         "-of", "default=noprint_wrappers=1:nokey=1", inputFile],
+        check=True, capture_output=True, text=True,
+    )
+    return float(result.stdout.strip())
 
 # 执行命令
 def execute(command):
@@ -7594,10 +7610,19 @@ def excepthook(exec_type, exec_val, exec_tb):
 ############# 程序入口 ################
 
 def main():
-    global app, conn, language, translator, apiUpdateBroadCaster, platfm, subprocessStartUpInfo, mainWindow, tray
-    sys.excepthook = excepthook
+    global app, conn, dbname, language, translator, apiUpdateBroadCaster, platfm, subprocessStartUpInfo, mainWindow, tray
+    smoke_test = '--smoke-test' in sys.argv
+    if smoke_test:
+        sys.argv.remove('--smoke-test')
+    else:
+        sys.excepthook = excepthook
+    os.chdir(os.path.dirname(os.path.abspath(__file__)))
     os.environ['PATH'] += os.pathsep + os.getcwd()
     app = QApplication(sys.argv)
+    data_dir = os.environ.get('QUICKCUT_DATA_DIR') or os.path.join(
+        os.path.expanduser('~'), 'Library', 'Application Support', 'QuickCut')
+    os.makedirs(data_dir, exist_ok=True)
+    dbname = os.path.join(data_dir, 'database.db')
     conn = sqlite3.connect(dbname)
     createDB()
     language = checkDBLanguage()  # 得到已设置的语言
@@ -7617,12 +7642,17 @@ def main():
         pass
     mainWindow = MainWindow()
     mainWindow.capsWriterTab.initCapsWriterStatus()  # 只有在 mainWindow 初始化完成后，才能启动 capsWriter
+    if smoke_test:
+        assert mainWindow.tabs.count() >= 8
+        print('Quick Cut startup smoke check passed')
+        mainWindow.close()
+        conn.close()
+        return 0
     if platfm == 'Darwin':
         tray = SystemTray(QIcon('misc/icon.icns'), mainWindow)
     else:
         tray = SystemTray(QIcon('misc/icon.ico'), mainWindow)
-    sys.exit(app.exec_())
-    conn.close()
+    return app.exec_()
 
 if __name__ == '__main__':
-    main()
+    sys.exit(main())
