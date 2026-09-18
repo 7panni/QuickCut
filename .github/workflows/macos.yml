@@ -1,0 +1,28 @@
+name: macOS Apple Silicon source check
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  source:
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Check native architecture and FFmpeg
+        run: |
+          test "$(uname -m)" = arm64
+          command -v ffmpeg || brew install ffmpeg
+          command -v ffprobe
+      - name: Install source package
+        run: python -m pip install -e .
+      - name: Import and start Qt offscreen
+        env:
+          QT_QPA_PLATFORM: offscreen
+          QUICKCUT_DATA_DIR: ${{ runner.temp }}/quickcut-data
+        run: |
+          python -c "import QuickCut.QuickCut"
+          quickcut --smoke-test

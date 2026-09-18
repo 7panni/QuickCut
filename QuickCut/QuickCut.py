@@ -5038,6 +5038,7 @@ class CommandThread(QThread):
                                                 start_new_session=True)
         except:
             self.print(self.tr('出错了，本次运行的命令是：\n\n%s\n\n你可以将上面这行命令复制到 cmd 窗口运行下，看看报什么错，如果自己解决不了，把那个报错信息发给开发者。如果是 you-get 和 youtube-dl 的问题，请查看视频教程：https://www.bilibili.com/video/BV18T4y1E7FF?p=5\n\n') % self.command)
+            return
         try:
             stdout = _BufferedReaderForFFmpeg(self.process.stdout.raw)
             while True:
@@ -5048,9 +5049,14 @@ class CommandThread(QThread):
                     self.printForFFmpeg(line.decode('utf-8'))
                 except UnicodeDecodeError:
                     self.printForFFmpeg(line.decode('gbk'))
+            return_code = self.process.wait()
+            if return_code != 0:
+                self.print(self.tr('命令失败，退出码：%s\n') % return_code)
+                return
         except:
             self.print(
                 self.tr('''出错了，本次运行的命令是：\n\n%s\n\n你可以将上面这行命令复制到 cmd 窗口运行下，看看报什么错，如果自己解决不了，把那个报错信息发给开发者\n''') % self.command)
+            return
         self.print(self.tr('\n命令执行完毕\n'))
 
 # 安装 you-get 和 youtube-dl 进程

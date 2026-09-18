@@ -428,3 +428,8 @@ pyinstaller --hidden-import pkg_resources.py2_warn --noconfirm -w -i icon.icns Q
 ## 🙏 鸣谢
 
 感谢知乎上的 @[Python与模具](https://www.zhihu.com/people/xuhui112-ben) 的帮助，让我得以用 nuitka 对软件进行打包。
+## Apple Silicon source fork
+
+This repository is a modern macOS compatibility fork of [Haujet Zhao's QuickCut](https://github.com/HaujetZhao/QuickCut), retaining the original author and [MPL-2.0 license](LICENSE). For macOS 15+, Apple Silicon, and Python 3.11, see the current [source installation and known limits](README.md#quick-cut-for-apple-silicon-source-fork). The historical upstream manual follows below.
+
+---

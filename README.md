@@ -448,3 +448,34 @@ pyinstaller -wy -i icon.icns QuickCut.py # 为了图标格式兼容，Mac 用户
 ## 🙏 鸣谢
 
 感谢知乎上的 @[Python与模具](https://www.zhihu.com/people/xuhui112-ben) 的帮助，让我得以用 nuitka 对软件进行打包。
+## Quick Cut for Apple Silicon (source fork)
+
+This is a modern macOS source fork of [Haujet Zhao's QuickCut](https://github.com/HaujetZhao/QuickCut). The original author and [MPL-2.0 license](LICENSE) are retained. The historical upstream documentation follows this section; its PyPI package, Windows binaries, and release links are not this fork's installation route.
+
+**Supported target:** Apple Silicon (M1–M4), macOS 15 or newer, native arm64 Python 3.11. The core source installation and cut/export workflow were checked on an Apple Silicon Mac; macOS 15 is checked by arm64 GitHub Actions. Individual M1–M4 models have not each been tested. Intel Macs, Rosetta, `.app`/DMG builds, signing, and notarization are outside this fork's scope.
+
+### Install and run
+
+Install [Homebrew](https://brew.sh/) first, then in Terminal:
+
+```sh
+brew install python@3.11 ffmpeg
+git clone https://github.com/7panni/QuickCut.git
+cd QuickCut
+python3.11 -m venv .venv
+source .venv/bin/activate
+python -m pip install -e .
+quickcut
+```
+
+`uname -m` and `python -c 'import platform; print(platform.machine())'` should both print `arm64`. `ffmpeg` and `ffprobe` must be on `PATH`. Run `quickcut --smoke-test` for a quick startup check. Settings and presets are stored in `~/Library/Application Support/QuickCut/database.db`; override the directory with `QUICKCUT_DATA_DIR` when needed.
+
+For a basic cut, choose a file in the **FFmpeg** tab, enable **截取片段**, enter the start time and duration, choose an output path, and click **运行**. The generated FFmpeg command is shown before execution. The upstream application has no embedded video preview or draggable timeline; cut positions are entered as time values.
+
+### Known limits
+
+- The base install covers the original FFmpeg tab, split/concat UI, and source startup. Optional automatic editing, cloud subtitle APIs, and CapsWriter speech input use older third-party integrations and are not part of the verified core path. Optional dependency groups are declared in `pyproject.toml`; their external services and macOS behavior remain unverified.
+- Some upstream FFmpeg presets use Windows or non-Apple hardware encoders. On Apple Silicon, choose software encoding or a `videotoolbox` option supported by your FFmpeg build.
+- The original download tab and its `youtube-dl`/`you-get` integration have not been migrated or verified.
+
+---
