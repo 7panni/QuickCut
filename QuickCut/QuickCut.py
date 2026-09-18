@@ -2293,6 +2293,9 @@ class FFmpegConcatTab(QWidget):
         self.concatMethod = 'concatFormat'
 
     def filesDrop(self, list):
+        if self.fileList == [] and list != []:
+            tempNameParts = os.path.splitext(list[0])
+            self.outputFileLineEdit.setText(tempNameParts[0] + 'out' + tempNameParts[1])
         self.fileList += list
         self.refreshFileList()
 
